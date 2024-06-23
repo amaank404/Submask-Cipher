@@ -19,7 +19,5 @@ def F():
     def f(BOX1=widgets.Text(value='This is some text', disabled=False),
              BOX2=widgets.Text(value='totally a secure password lol', disabled=False)):
         plain_text = BOX1
-        print(  data := cryptsys.encrypt(bytes(BOX1,'UTF-8'), # message
-                                                bytes(BOX2,'UTF-8')))               # key
-        
+        print(  data := cryptsys.encrypt(bytes(BOX1,'UTF-8'), bytes(BOX2,'UTF-8')))
 F()
