@@ -1,23 +1,10 @@
-# submask_cipher.py needed
-# TODO: add exception
 import submask_cipher as cryptsys
 
-# jupyter and ipywidgets needed
-import ipywidgets
+import ipywidgets as widgets
 
-def F():
-    import ipywidgets as widgets
-    from ipywidgets import HBox, VBox
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from IPython.display import display
-    %matplotlib inline
-    @widgets.interact
-    
-    # BOX 1  message
-    # BOX 2  key
-    def f(BOX1=widgets.Text(value='This is some text', disabled=False),
-             BOX2=widgets.Text(value='totally a secure password lol', disabled=False)):
-        plain_text = BOX1
-        print(  data := cryptsys.encrypt(bytes(BOX1,'UTF-8'), bytes(BOX2,'UTF-8')))
-F()
+@widgets.interact
+def interactive_encrypt(
+    message='This is some text',
+    key='totally a secure password lol'
+):
+    return (cryptsys.encrypt(bytes(message,'UTF-8'), bytes(key,'UTF-8')))
