@@ -10,6 +10,7 @@ Uses SHA512, sha512 taken from python's standard library hashlib module
 """
 
 import hashlib
+import random
 
 MASK64 = (1 << 64) - 1
 MASK32 = (1 << 32) - 1
@@ -48,6 +49,14 @@ class RNG():
         for x in range(256):
             new_key.append(init_key.pop(self.get_rand() % (256-x)))
         return new_key
+    
+def gen_nonce() -> bytes:
+    """
+    return a 128 byte long nonce!
+
+    replace this function to ur heart's content!
+    """
+    return random.randbytes(128)
 
 def decode_password(password: bytes) -> tuple[int, bytes]:
     """
@@ -82,7 +91,7 @@ def gen_substitution_key_grid(seed: int):
 
     return keys_grid, rng
 
-def encrypt(data: bytes, password: bytes) -> bytes:
+def _encrypt1(data: bytes, password: bytes) -> bytes:
     """
     Generate the substitution key grid based on the given password
     and replace
@@ -104,7 +113,7 @@ def encrypt(data: bytes, password: bytes) -> bytes:
 
     return bytes(encrypted_data)
 
-def decrypt(data: bytes, password: bytes) -> bytes:
+def _decrypt1(data: bytes, password: bytes) -> bytes:
     """
     Reverse the encryption by first generating the substitution
     grid!
@@ -119,6 +128,15 @@ def decrypt(data: bytes, password: bytes) -> bytes:
         decrypted_data.append(key.find(x))  # Get the corresponding value for the given data byte in reverse
 
     return bytes(decrypted_data)
+
+def encrypt(data: bytes, password: bytes) -> bytes:
+    nonce = gen_nonce()
+    return _encrypt1(nonce, password) + _encrypt1(data, password+nonce)
+
+
+def decrypt(data: bytes, password: bytes) -> bytes:
+    nonce = _decrypt1(data[:128], password)
+    return _decrypt1(data[128:], password+nonce)
 
 
 # Have fun with this lil section
