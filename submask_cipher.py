@@ -80,21 +80,26 @@ def gen_substitution_key_grid(seed: int):
         current_key = bytes(current_key)
         keys_grid.append(current_key)
 
-    return keys_grid
+    return keys_grid, rng
 
 def encrypt(data: bytes, password: bytes) -> bytes:
     """
     Generate the substitution key grid based on the given password
     and replace
 
-    a[i] = sub_table[pattern[i % len(pattern)]][a[i]]
+    it also uses the same rng that was used to generate subkey grid
+    without reseeding to make changes to pattern.
+    a[i] = sub_table[
+        (pattern[i % len(pattern)] + rng.get_rand()) % 256
+    ][a[i]]
     """
     seed, pattern = decode_password(password)
-    sub_table = gen_substitution_key_grid(seed)
+    sub_table, rng = gen_substitution_key_grid(seed)
     
     encrypted_data = []
     for i, x in enumerate(data):
-        key = sub_table[pattern[i % len(pattern)]]  # This is our key for the current byte
+        random_number_i = rng.get_rand()
+        key = sub_table[(pattern[i % len(pattern)] + random_number_i)%256]  # This is our key for the current byte
         encrypted_data.append(key[x])  # Get the corresponding value for the given data byte
 
     return bytes(encrypted_data)
@@ -105,11 +110,12 @@ def decrypt(data: bytes, password: bytes) -> bytes:
     grid!
     """
     seed, pattern = decode_password(password)
-    sub_table = gen_substitution_key_grid(seed)
+    sub_table, rng = gen_substitution_key_grid(seed)
 
     decrypted_data = []
     for i, x in enumerate(data):
-        key = sub_table[pattern[i % len(pattern)]]  # This is our key for the current byte
+        random_number_i = rng.get_rand()
+        key = sub_table[(pattern[i % len(pattern)] + random_number_i)%256]  # This is our key for the current byte
         decrypted_data.append(key.find(x))  # Get the corresponding value for the given data byte in reverse
 
     return bytes(decrypted_data)
@@ -117,5 +123,5 @@ def decrypt(data: bytes, password: bytes) -> bytes:
 
 # Have fun with this lil section
 if __name__ == "__main__":
-    print(data := encrypt(b"This is some text", b"totally a secure password lol"))
+    print(data := encrypt(b"This is some textThis is some textThis is some text", b"totally a secure password lol"))
     print(decrypt(data, b"totally a secure password lol"))
