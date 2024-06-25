@@ -61,14 +61,21 @@ def gen_nonce() -> bytes:
 def decode_password(password: bytes) -> tuple[int, bytes]:
     """
     {4-byte unsigned int}{n-byte pattern}
-    decode the given password into the following format given above
-    """
-    password = hashlib.sha512(password).digest()[:len(password)]
-    seed = int.from_bytes(password[:4], "big", signed=False)
-    pattern = password[4:]
-    return (seed, pattern)
+    decode the given password into the following format given above.
 
-def gen_substitution_key_grid(seed: int):
+    The hashed password is truncated to a rng provided length//2
+    """
+    password = hashlib.sha512(password).digest()
+    seed = int.from_bytes(password[:4], "big", signed=False)
+    rng = RNG()
+    rng.set_seed(seed)
+
+    # Truncate the password, truncate length = 128 + rand // 2
+    truncate_length = (1 << 8) + rng.get_rand() >> 1
+    pattern = password[4:truncate_length]
+    return (rng, pattern)
+
+def gen_substitution_key_grid(rng: RNG):
     """
     Generate a substitution key grid
     each substitution key is 255 bytes long
@@ -79,10 +86,6 @@ def gen_substitution_key_grid(seed: int):
     sequence is shuffled by popping and appending
     the i = rng_int() % current_length_initial_sequence
     """
-    rng = RNG()
-    rng.set_seed(seed)
-    rng.get_rand()
-
     keys_grid = []
     for _ in range(256):
         current_key = rng.get_key()
@@ -102,8 +105,8 @@ def _encrypt1(data: bytes, password: bytes) -> bytes:
         (pattern[i % len(pattern)] + rng.get_rand()) % 256
     ][a[i]]
     """
-    seed, pattern = decode_password(password)
-    sub_table, rng = gen_substitution_key_grid(seed)
+    rng, pattern = decode_password(password)
+    sub_table, rng = gen_substitution_key_grid(rng)
     
     encrypted_data = []
     for i, x in enumerate(data):
@@ -118,8 +121,8 @@ def _decrypt1(data: bytes, password: bytes) -> bytes:
     Reverse the encryption by first generating the substitution
     grid!
     """
-    seed, pattern = decode_password(password)
-    sub_table, rng = gen_substitution_key_grid(seed)
+    rng, pattern = decode_password(password)
+    sub_table, rng = gen_substitution_key_grid(rng)
 
     decrypted_data = []
     for i, x in enumerate(data):
