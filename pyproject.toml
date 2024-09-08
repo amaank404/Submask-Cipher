@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "submask-cipher"
-version = "1.0.0"
+version = "1.0.1"
 description = "Substitution Masking Cipher"
 authors = ["Amaan <71920621+amaank404@users.noreply.github.com>"]
 license = "MIT License"

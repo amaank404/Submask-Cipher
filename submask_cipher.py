@@ -136,9 +136,9 @@ def encrypt(data: bytes, password: bytes, nonce = None) -> bytes:
     """
     encrypt the given data using a given password
     """
-    assert len(nonce) == 128, "Nonces have to be 128 bytes long"
     if nonce is None:
         nonce = gen_nonce()
+    assert len(nonce) == 128, "Nonces have to be 128 bytes long"
     return _encrypt1(nonce, password) + _encrypt1(data, password+nonce)
 
 
