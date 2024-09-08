@@ -132,17 +132,19 @@ def _decrypt1(data: bytes, password: bytes) -> bytes:
 
     return bytes(decrypted_data)
 
-def encrypt(data: bytes, password: bytes) -> bytes:
-    nonce = gen_nonce()
+def encrypt(data: bytes, password: bytes, nonce = None) -> bytes:
+    """
+    encrypt the given data using a given password
+    """
+    assert len(nonce) == 128, "Nonces have to be 128 bytes long"
+    if nonce is None:
+        nonce = gen_nonce()
     return _encrypt1(nonce, password) + _encrypt1(data, password+nonce)
 
 
 def decrypt(data: bytes, password: bytes) -> bytes:
+    """
+    decrypt the given ciphertext with a given password
+    """
     nonce = _decrypt1(data[:128], password)
     return _decrypt1(data[128:], password+nonce)
-
-
-# Have fun with this lil section
-if __name__ == "__main__":
-    print(data := encrypt(b"This is some textThis is some textThis is some text", b"totally a secure password lol"))
-    print(decrypt(data, b"totally a secure password lol"))
